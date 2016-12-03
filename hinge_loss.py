@@ -27,6 +27,11 @@ def grad_descent(x, y, w, step, stop=0.001, second_ord= "vanilla"):
     loss0 = np.inf
     cache = 0
     decay_rate = 0.9 # Used in RmsProp
+    #Params for Adam
+    beta1 = 0.9
+    beta2 = 0.999
+    m = 0
+    v = 0
     while np.abs(diff) > stop:
         loss, grad = hinge_loss(w,x,y)
         #print(loss)
@@ -40,6 +45,10 @@ def grad_descent(x, y, w, step, stop=0.001, second_ord= "vanilla"):
         elif second_ord == "rmsprop":
             cache = decay_rate * cache + (1- decay_rate) * (grad**2)
             w = w - step * grad/(np.sqrt(cache) + 0.00001)
+        elif second_ord == "adam":
+            m = (beta1 * m) + (1-beta1) * grad
+            v = (beta2 * v) + (1-beta2) * (grad**2)
+            w = w - step * m /(np.sqrt(v) + 0.00000001)
         ws = np.hstack((ws,w.reshape((2,1))))
     return np.sum(ws,1)/np.size(ws,1)
 

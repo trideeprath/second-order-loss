@@ -8,3 +8,4 @@ if __name__ == '__main__':
     time_taken, acc = hinge_run(plot_fig=False, step = 0.001, second_ord="vanilla")
     time_taken, acc = hinge_run(plot_fig=False, step = 0.01, second_ord="adagrad")
     time_taken, acc = hinge_run(plot_fig=False, step = 0.001, second_ord="rmsprop")
+    time_taken, acc = hinge_run(plot_fig=False, step = 0.001, second_ord="adam")
