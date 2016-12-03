@@ -33,7 +33,7 @@ def grad_descent(x, y, w, step, stop=0.001, second_ord= "vanilla"):
         loss0 = loss
         if second_ord == "vanilla":
             w = w - step * grad
-        elif second_ord == "adam":
+        elif second_ord == "adagrad":
             cache = cache + grad**2
             w = w - step * grad/(np.sqrt(cache)+ 0.00001)
         ws = np.hstack((ws,w.reshape((2,1))))
@@ -67,10 +67,11 @@ def hinge_run(create_data=False, plot_fig=False,step = 0.001, second_ord = "vani
 
 def accuracy(w, test_x, test_y):
     correct = 0
+    X_incorrect = []
     for x, y in zip(test_x, test_y):
         y_pred = w.dot(x)
         if y_pred * y > 0 :
-            correct +=1
+            correct += 1
     return float(correct*100)/float(len(test_x))
 
 
