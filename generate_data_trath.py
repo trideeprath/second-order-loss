@@ -3,7 +3,7 @@ import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 
-def create_blob(out_folder="data/", samples =1000, features=2, std=0.70, plot_fig = False):
+def create_blob(out_folder="data/", samples =1000, features=2, std=0.7, plot_fig = False):
     print("*******Generating data*********")
     X, Y = make_blobs(n_samples=samples, centers=2, n_features=features, random_state=0, cluster_std=std)
     Y_hinge = np.array(list(map(lambda x: -1 if x == 0 else 1, Y)))  # Make Y as +1,-1

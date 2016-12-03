@@ -54,6 +54,7 @@ for i, color in zip(clf.classes_, colors):
     idx = np.where(y == i)
     plt.scatter(X[idx, 0], X[idx, 1], c=color, label=iris.target_names[i],
                 cmap=plt.cm.Paired)
+
 plt.title("Decision surface of multi-class SGD")
 plt.axis('tight')
 
@@ -62,7 +63,6 @@ xmin, xmax = plt.xlim()
 ymin, ymax = plt.ylim()
 coef = clf.coef_
 intercept = clf.intercept_
-
 
 def plot_hyperplane(c, color):
     def line(x0):

@@ -21,6 +21,7 @@ def hinge_loss(w,x,y):
 
 def grad_descent(x, y, w, step, stop=0.001, second_ord= "vanilla"):
     #grad = np.inf
+    timing_data = []
     ws = np.zeros((2,0))
     ws = np.hstack((ws,w.reshape(2,1)))
     diff = np.inf
@@ -32,6 +33,8 @@ def grad_descent(x, y, w, step, stop=0.001, second_ord= "vanilla"):
     beta2 = 0.999
     m = 0
     v = 0
+    count = 0
+    t0 = time.time()
     while np.abs(diff) > stop:
         loss, grad = hinge_loss(w,x,y)
         #print(loss)
@@ -50,10 +53,11 @@ def grad_descent(x, y, w, step, stop=0.001, second_ord= "vanilla"):
             v = (beta2 * v) + (1-beta2) * (grad**2)
             w = w - step * m /(np.sqrt(v) + 0.00000001)
         ws = np.hstack((ws,w.reshape((2,1))))
+
     return np.sum(ws,1)/np.size(ws,1)
 
 
-def hinge_run(create_data=False, plot_fig=False,step = 0.001, second_ord = "vanilla"):
+def hinge_run(create_data=False, plot_fig=False,step = 0.001, second_ord = "vanilla", consider_reg= False):
     print("****** Hinge loss optimization started with second order as " + second_ord +" *******")
     start_time = time.clock()
 
@@ -65,13 +69,16 @@ def hinge_run(create_data=False, plot_fig=False,step = 0.001, second_ord = "vani
         Y_train = pickle.load(open("data/train_y_hinge.pkl", "rb"))
 
     w = grad_descent(X_train, Y_train, np.array((0, 0)), step= step, second_ord=second_ord)
+
     time_taken = time.clock() - start_time
     print(time.clock() - start_time, "seconds")
+
     # Accuracy
     X_test = pickle.load(open("data/test_x.pkl", "rb"))
     Y_test = pickle.load(open("data/test_y_hinge.pkl", "rb"))
     acc = accuracy(w, X_test, Y_test)
     print(" accuracy is " + str(acc) + "%")
+
     # Plot points and decision surface
     if plot_fig is True:
         plot_points(X_train, Y_train, w)
