@@ -76,12 +76,15 @@ def cross_entropy_run(create_data=False, plot_fig=False,step = 0.001, second_ord
     print(" accuracy is " + str(acc) + "%")
 
     if plot_fig is True:
-        plot_points(X_test, Y_test, W, b)
+        plot_points(X_train, Y_train, W, b)
 
 
 
 def plot_points(X, y, W, b):
     # plot the resulting classifier
+    plt.rcParams['figure.figsize'] = (10.0, 8.0)  # set default size of plots
+    plt.rcParams['image.interpolation'] = 'nearest'
+    plt.rcParams['image.cmap'] = 'gray'
     h = 0.02
     x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
     y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1

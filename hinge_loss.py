@@ -14,9 +14,9 @@ def hinge_loss(w,x,y):
     loss, grad = 0,0
     for (x_,y_) in zip(x,y):
         v = y_*np.dot(w,x_)
-        loss += max(0,1-v)
+        loss += max(0, 1-v)
         grad += 0 if v > 1 else -y_*x_
-    return (loss,grad)
+    return (loss, grad)
 
 
 def grad_descent(x, y, w, step, stop=0.001, second_ord= "vanilla"):

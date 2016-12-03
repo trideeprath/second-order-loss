@@ -12,5 +12,5 @@ if __name__ == '__main__':
     #time_taken, acc = hinge_run(plot_fig=True, step = step, second_ord="adagrad")
     #time_taken, acc = hinge_run(plot_fig=True, step = step, second_ord="rmsprop")
     #time_taken, acc = hinge_run(plot_fig=True, step = step, second_ord="adam")
-    cross_entropy_run(consider_reg=False, plot_fig=True)
+    cross_entropy_run(consider_reg=True, plot_fig=True)
 
