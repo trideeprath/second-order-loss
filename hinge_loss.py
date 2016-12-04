@@ -3,23 +3,32 @@ import matplotlib.pyplot as plt
 from sklearn.datasets.samples_generator import make_blobs
 import pickle
 import time
+import numpy as np
 
 
-def hinge_loss(w,x,y):
+def hinge_loss(w,x,y,consider_reg):
     """ evaluates hinge loss and its gradient at w
 
     rows of x are data points
     y is a vector of labels
     """
-    loss, grad = 0,0
+    loss, grad1 = 0, 0
+    reg_loss = 0
+    reg_grad = 0
+    c = 0.001
     for (x_,y_) in zip(x,y):
         v = y_*np.dot(w,x_)
-        loss += max(0, 1-v)
-        grad += 0 if v > 1 else -y_*x_
-    return (loss, grad)
+
+        loss += max(0, 1-v ) + reg_loss
+        if v >1 :
+            grad1 = grad1 + reg_grad
+        else:
+            grad1 = grad1 - (y_*x_) + reg_grad
+
+    return (loss, grad1)
 
 
-def grad_descent(x, y, w, step, stop=0.001, second_ord= "vanilla"):
+def grad_descent(x, y, w, step, stop=0.001, second_ord= "vanilla", consider_reg=False):
     #grad = np.inf
     timing_data = []
     ws = np.zeros((2,0))
@@ -35,13 +44,22 @@ def grad_descent(x, y, w, step, stop=0.001, second_ord= "vanilla"):
     v = 0
     count = 0
     t0 = time.time()
+    iteration_count = 0
+    c = 0.001
+    reg_grad = 0
     while np.abs(diff) > stop:
-        loss, grad = hinge_loss(w,x,y)
+        iteration_count +=1
+        loss, grad = hinge_loss(w, x, y, consider_reg)
         #print(loss)
         diff = loss0 - loss
         loss0 = loss
+
+        if consider_reg is True:
+            reg_loss = c * (np.linalg.norm(w)**2)
+            reg_grad = c * (np.sum(w))
+
         if second_ord == "vanilla":
-            w = w - step * grad
+            w = w - step * grad + reg_grad
         elif second_ord == "adagrad":
             cache = cache + grad**2
             w = w - step * grad/(np.sqrt(cache)+ 0.00001)
@@ -54,11 +72,16 @@ def grad_descent(x, y, w, step, stop=0.001, second_ord= "vanilla"):
             w = w - step * m /(np.sqrt(v) + 0.00000001)
         ws = np.hstack((ws,w.reshape((2,1))))
 
-    return np.sum(ws,1)/np.size(ws,1)
+    return np.sum(ws,1)/np.size(ws,1), iteration_count
 
 
-def hinge_run(create_data=False, plot_fig=False,step = 0.001, second_ord = "vanilla", consider_reg= False):
-    print("****** Hinge loss optimization started with second order as " + second_ord +" *******")
+def hinge_run(create_data=False, plot_fig=False,step = 0.001, second_ord = "vanilla", consider_reg=False):
+
+    if consider_reg is True:
+        reg_str = ", With L2 regularizattion"
+    else:
+        reg_str = ", Without L2 regularization"
+    print("****** Hinge loss optimization started with second order as " + second_ord + reg_str + " *******")
     start_time = time.clock()
 
     if create_data is True:
@@ -68,7 +91,7 @@ def hinge_run(create_data=False, plot_fig=False,step = 0.001, second_ord = "vani
         X_train = pickle.load(open("data/train_x.pkl", "rb"))
         Y_train = pickle.load(open("data/train_y_hinge.pkl", "rb"))
 
-    w = grad_descent(X_train, Y_train, np.array((0, 0)), step= step, second_ord=second_ord)
+    w, iteration_count = grad_descent(X_train, Y_train, np.array((0, 0)), step= step, second_ord=second_ord, consider_reg= consider_reg )
 
     time_taken = time.clock() - start_time
     print(time.clock() - start_time, "seconds")
@@ -77,12 +100,12 @@ def hinge_run(create_data=False, plot_fig=False,step = 0.001, second_ord = "vani
     X_test = pickle.load(open("data/test_x.pkl", "rb"))
     Y_test = pickle.load(open("data/test_y_hinge.pkl", "rb"))
     acc = accuracy(w, X_test, Y_test)
-    print(" accuracy is " + str(acc) + "%")
-
+    print("Accuracy : " + str(acc) + "%")
+    print("Iterations : " + str(iteration_count))
     # Plot points and decision surface
     if plot_fig is True:
         plot_points(X_train, Y_train, w)
-    return time_taken, acc
+    return time_taken, acc, iteration_count
 
 
 def accuracy(w, test_x, test_y):

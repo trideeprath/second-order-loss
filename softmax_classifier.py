@@ -7,6 +7,7 @@ Created on Sat Dec 03 11:54:30 2016
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+import time
 
 def accuracy(w, b, test_x, test_y):
     correct = 0
@@ -20,12 +21,20 @@ def accuracy(w, b, test_x, test_y):
 
 
 def cross_entropy_run(create_data=False, plot_fig=False,step = 0.001, second_ord = "vanilla", consider_reg=True):
-    print("****** Hinge loss optimization started with second order as " + second_ord + " *******")
+    if consider_reg is True:
+        reg_str = ", With L2 regularizattion"
+    else:
+        reg_str = ", Without L2 regularization"
+    print("****** Cross entropy optimization started with second order as " + second_ord + " *******" + reg_str)
+    start_time = time.clock()
     X_train = pickle.load(open("data/train_x.pkl", "rb"))
     Y_train = pickle.load(open("data/train_y.pkl", "rb"))
     # initialize parameters randomly
     W = 0.01 * np.random.randn(2,2)
     b = np.zeros((1,2))
+    loss0 = np.inf
+    stop = 0.000001
+    diff = np.inf
 
     # some hyperparameters
     step_size = step
@@ -33,7 +42,24 @@ def cross_entropy_run(create_data=False, plot_fig=False,step = 0.001, second_ord
 
     # gradient descent loop
     num_examples = X_train.shape[0]
-    for i in range(200):
+
+    #Adagrad variables
+    cache_W = 0
+    cache_B = 0
+    #Rmsprop variables
+    decay_rate = 0.9
+    # Params for Adam
+    beta1 = 0.9
+    beta2 = 0.999
+    m_W = 0
+    v_W = 0
+    m_B = 0
+    v_B = 0
+
+
+    i = 0
+    while np.abs(diff) > stop:
+        i += 1
         # evaluate class scores, [N x K]
         scores = np.dot(X_train, W) + b
 
@@ -50,9 +76,12 @@ def cross_entropy_run(create_data=False, plot_fig=False,step = 0.001, second_ord
         else:
             loss = data_loss
 
-        if i % 10 == 0:
-          print("iteration %d: loss %f" + str((i, loss)))
+        diff = loss0 - loss
+        loss0 = loss
 
+        if i % 10 == 0:
+            #print("iteration %d: loss %f" + str((i, loss)))
+            pass
         # compute the gradient on scores
         dscores = probs
         dscores[range(num_examples),Y_train] -= 1
@@ -66,14 +95,38 @@ def cross_entropy_run(create_data=False, plot_fig=False,step = 0.001, second_ord
             dW += reg*W # regularization gradient
 
         # perform a parameter update
-        W += -step_size * dW
-        b += -step_size * db
+        if second_ord == "vanilla":
+            W += -step_size * dW
+            b += -step_size * db
+        elif second_ord == "adagrad":
+            cache_W = cache_W + dW ** 2
+            W = W - step * dW / (np.sqrt(cache_W) + 0.00001)
+            b += -step_size * db
+            #cache_B = cache_B + db**2
+            #b = b - step * db / (np.sqrt(cache_B) + 0.00001)
+        elif second_ord == "rmsprop":
+            cache_W = decay_rate * cache_W + (1 - decay_rate) * (dW ** 2)
+            W =  W - step * dW / (np.sqrt(cache_W) + 0.00001)
+            b += -step_size * db
+            #cache_B = decay_rate * cache_B + (1 - decay_rate) * (db ** 2)
+            #b = b - step * db / (np.sqrt(cache_B) + 0.00001)
+        elif second_ord == "adam":
+            m_W = (beta1 * m_W) + (1 - beta1) * dW
+            v_W = (beta2 * v_W) + (1 - beta2) * (dW ** 2)
+            W = W - step * m_W / (np.sqrt(v_W) + 0.00000001)
+            b += -step_size * db
+            #m_B = (beta1 * m_B) + (1 - beta1) * db
+            #v_B = (beta2 * v_B) + (1 - beta2) * (db ** 2)
+            #b = b - step * m_B / (np.sqrt(v_B) + 0.00000001)
 
+    time_taken = time.clock() - start_time
+    print(time.clock() - start_time, "seconds")
 
     X_test = pickle.load(open("data/test_x.pkl", "rb"))
     Y_test = pickle.load(open("data/test_y.pkl", "rb"))
     acc = accuracy(W,b, X_test, Y_test)
-    print(" accuracy is " + str(acc) + "%")
+    print("Accuracy : " + str(acc) + "%")
+    print("Iteration : " + str(i))
 
     if plot_fig is True:
         plot_points(X_train, Y_train, W, b)
