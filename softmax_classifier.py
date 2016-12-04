@@ -20,12 +20,13 @@ def accuracy(w, b, test_x, test_y):
     return float(correct*100)/float(len(test_x))
 
 
-def cross_entropy_run(create_data=False, plot_fig=False,step = 0.001, second_ord = "vanilla", consider_reg=True):
+def cross_entropy_run(create_data=False, plot_fig=False, plot_iteration =False, step = 0.001, second_ord = None, consider_reg=True, stop = None):
     if consider_reg is True:
-        reg_str = ", With L2 regularizattion"
+        reg_str = ", With L2 regularization"
     else:
         reg_str = ", Without L2 regularization"
-    print("****** Cross entropy optimization started with second order as " + second_ord + " *******" + reg_str)
+    banner = "Cross entropy optimization started with second order as " + second_ord + reg_str
+    print("****** " + banner + " *******" )
     start_time = time.clock()
     X_train = pickle.load(open("data/train_x.pkl", "rb"))
     Y_train = pickle.load(open("data/train_y.pkl", "rb"))
@@ -33,7 +34,7 @@ def cross_entropy_run(create_data=False, plot_fig=False,step = 0.001, second_ord
     W = 0.01 * np.random.randn(2,2)
     b = np.zeros((1,2))
     loss0 = np.inf
-    stop = 0.000001
+    stop = stop
     diff = np.inf
 
     # some hyperparameters
@@ -58,6 +59,7 @@ def cross_entropy_run(create_data=False, plot_fig=False,step = 0.001, second_ord
 
 
     i = 0
+    loss_list = []
     while np.abs(diff) > stop:
         i += 1
         # evaluate class scores, [N x K]
@@ -118,6 +120,8 @@ def cross_entropy_run(create_data=False, plot_fig=False,step = 0.001, second_ord
             #m_B = (beta1 * m_B) + (1 - beta1) * db
             #v_B = (beta2 * v_B) + (1 - beta2) * (db ** 2)
             #b = b - step * m_B / (np.sqrt(v_B) + 0.00000001)
+        loss_list.append((i, loss))
+
 
     time_taken = time.clock() - start_time
     print(time.clock() - start_time, "seconds")
@@ -127,6 +131,17 @@ def cross_entropy_run(create_data=False, plot_fig=False,step = 0.001, second_ord
     acc = accuracy(W,b, X_test, Y_test)
     print("Accuracy : " + str(acc) + "%")
     print("Iteration : " + str(i))
+    if plot_iteration is True:
+        iteration = []
+        loss_value = []
+        for x, y in loss_list:
+            iteration.append(x)
+            loss_value.append(y)
+
+        plt.plot(iteration, loss_value)
+        plt.title(banner)
+        plt.show()
+
 
     if plot_fig is True:
         plot_points(X_train, Y_train, W, b)

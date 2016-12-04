@@ -18,17 +18,16 @@ def hinge_loss(w,x,y,consider_reg):
     c = 0.001
     for (x_,y_) in zip(x,y):
         v = y_*np.dot(w,x_)
-
-        loss += max(0, 1-v ) + reg_loss
+        loss += max(0, 1-v )
         if v >1 :
-            grad1 = grad1 + reg_grad
+            grad1 = grad1
         else:
-            grad1 = grad1 - (y_*x_) + reg_grad
+            grad1 = grad1 - (y_*x_)
 
     return (loss, grad1)
 
 
-def grad_descent(x, y, w, step, stop=0.001, second_ord= "vanilla", consider_reg=False):
+def grad_descent(x, y, w, step, second_ord= "vanilla", consider_reg=False, stop= None):
     #grad = np.inf
     timing_data = []
     ws = np.zeros((2,0))
@@ -47,41 +46,46 @@ def grad_descent(x, y, w, step, stop=0.001, second_ord= "vanilla", consider_reg=
     iteration_count = 0
     c = 0.001
     reg_grad = 0
+    loss_list = []
     while np.abs(diff) > stop:
         iteration_count +=1
         loss, grad = hinge_loss(w, x, y, consider_reg)
         #print(loss)
-        diff = loss0 - loss
-        loss0 = loss
 
         if consider_reg is True:
             reg_loss = c * (np.linalg.norm(w)**2)
             reg_grad = c * (np.sum(w))
+            loss = loss + reg_loss
+
+        diff = loss0 - loss
+        loss0 = loss
 
         if second_ord == "vanilla":
             w = w - step * grad + reg_grad
         elif second_ord == "adagrad":
             cache = cache + grad**2
-            w = w - step * grad/(np.sqrt(cache)+ 0.00001)
+            w = w - step * grad/(np.sqrt(cache)+ 0.00001) + reg_grad
         elif second_ord == "rmsprop":
             cache = decay_rate * cache + (1- decay_rate) * (grad**2)
-            w = w - step * grad/(np.sqrt(cache) + 0.00001)
+            w = w - step * grad/(np.sqrt(cache) + 0.00001) + reg_grad
         elif second_ord == "adam":
             m = (beta1 * m) + (1-beta1) * grad
             v = (beta2 * v) + (1-beta2) * (grad**2)
-            w = w - step * m /(np.sqrt(v) + 0.00000001)
+            w = w - step * m /(np.sqrt(v) + 0.00000001) + reg_grad
         ws = np.hstack((ws,w.reshape((2,1))))
+        loss_list.append((iteration_count, loss))
 
-    return np.sum(ws,1)/np.size(ws,1), iteration_count
+    return np.sum(ws,1)/np.size(ws,1), iteration_count, loss_list
 
 
-def hinge_run(create_data=False, plot_fig=False,step = 0.001, second_ord = "vanilla", consider_reg=False):
+def hinge_run(create_data=False, plot_fig=False, plot_iteration=False, step=0.001, second_ord="vanilla", consider_reg=False, stop=None):
 
     if consider_reg is True:
         reg_str = ", With L2 regularizattion"
     else:
         reg_str = ", Without L2 regularization"
-    print("****** Hinge loss optimization started with second order as " + second_ord + reg_str + " *******")
+    banner = "Hinge loss optimization started with second order as " + second_ord + reg_str
+    print("******  " + banner + "  *******")
     start_time = time.clock()
 
     if create_data is True:
@@ -91,8 +95,8 @@ def hinge_run(create_data=False, plot_fig=False,step = 0.001, second_ord = "vani
         X_train = pickle.load(open("data/train_x.pkl", "rb"))
         Y_train = pickle.load(open("data/train_y_hinge.pkl", "rb"))
 
-    w, iteration_count = grad_descent(X_train, Y_train, np.array((0, 0)), step= step, second_ord=second_ord, consider_reg= consider_reg )
-
+    w, iteration_count, loss_list = grad_descent(X_train, Y_train, np.array((0, 0)), step= step, second_ord=second_ord, consider_reg= consider_reg,stop=stop )
+    #print(len(loss_list), loss_list[0:10])
     time_taken = time.clock() - start_time
     print(time.clock() - start_time, "seconds")
 
@@ -102,6 +106,19 @@ def hinge_run(create_data=False, plot_fig=False,step = 0.001, second_ord = "vani
     acc = accuracy(w, X_test, Y_test)
     print("Accuracy : " + str(acc) + "%")
     print("Iterations : " + str(iteration_count))
+    #Plot of iteration and loss
+    if plot_iteration is True:
+        iteration = []
+        loss_value = []
+        for x, y in loss_list:
+            iteration.append(x)
+            loss_value.append(y)
+
+        plt.plot(iteration, loss_value)
+        plt.title(banner)
+        plt.show()
+
+
     # Plot points and decision surface
     if plot_fig is True:
         plot_points(X_train, Y_train, w)
