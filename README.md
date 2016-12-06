@@ -43,6 +43,6 @@ optional arguments:
 For plotting you need close the plot to continue the next optimization
 ```
 
-* Running for the first time you need to get the fetch data and create models. This would run the code for the provided ids.
-    python run.py --fetch-reviews --create-model --hotel_id 8427,31945,3261,15661
-* Output file csv would be created at location : output/hotel_review_tags.csv
+
+* Train Data : data/train_csv.csv
+* Test Data : /test_csv.csv
