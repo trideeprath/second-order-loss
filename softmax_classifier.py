@@ -22,10 +22,10 @@ def accuracy(w, b, test_x, test_y):
 
 def cross_entropy_run(create_data=False, plot_fig=False, plot_iteration =False, step = 0.001, second_ord = None, consider_reg=True, stop = None):
     if consider_reg is True:
-        reg_str = ", With L2 regularization"
+        reg_str = ", with L2 regularization"
     else:
-        reg_str = ", Without L2 regularization"
-    banner = "Cross entropy optimization started with second order as " + second_ord + reg_str
+        reg_str = ", without L2 regularization"
+    banner = "Cross entropy optimization started with " + second_ord + reg_str
     print("****** " + banner + " *******" )
     start_time = time.clock()
     X_train = pickle.load(open("data/train_x.pkl", "rb"))
@@ -36,6 +36,7 @@ def cross_entropy_run(create_data=False, plot_fig=False, plot_iteration =False, 
     loss0 = np.inf
     stop = stop
     diff = np.inf
+
 
     # some hyperparameters
     step_size = step

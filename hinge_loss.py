@@ -81,10 +81,10 @@ def grad_descent(x, y, w, step, second_ord= "vanilla", consider_reg=False, stop=
 def hinge_run(create_data=False, plot_fig=False, plot_iteration=False, step=0.001, second_ord="vanilla", consider_reg=False, stop=None):
 
     if consider_reg is True:
-        reg_str = ", With L2 regularizattion"
+        reg_str = ", with L2 regularizattion"
     else:
-        reg_str = ", Without L2 regularization"
-    banner = "Hinge loss optimization started with second order as " + second_ord + reg_str
+        reg_str = ", without L2 regularization"
+    banner = "Hinge loss with optimization with " + second_ord + reg_str
     print("******  " + banner + "  *******")
     start_time = time.clock()
 
@@ -98,7 +98,7 @@ def hinge_run(create_data=False, plot_fig=False, plot_iteration=False, step=0.00
     w, iteration_count, loss_list = grad_descent(X_train, Y_train, np.array((0, 0)), step= step, second_ord=second_ord, consider_reg= consider_reg,stop=stop )
     #print(len(loss_list), loss_list[0:10])
     time_taken = time.clock() - start_time
-    print(time.clock() - start_time, "seconds")
+    print("Time taken: ", time.clock() - start_time, "seconds")
 
     # Accuracy
     X_test = pickle.load(open("data/test_x.pkl", "rb"))
@@ -121,7 +121,7 @@ def hinge_run(create_data=False, plot_fig=False, plot_iteration=False, step=0.00
 
     # Plot points and decision surface
     if plot_fig is True:
-        plot_points(X_train, Y_train, w)
+        plot_points(X_train, Y_train, w, banner)
     return time_taken, acc, iteration_count
 
 
@@ -135,7 +135,7 @@ def accuracy(w, test_x, test_y):
     return float(correct*100)/float(len(test_x))
 
 
-def plot_points(x, y, w):
+def plot_points(x, y, w, banner):
     plt.figure()
     # Features
     x1, x2 = x[:,0], x[:,1]
@@ -149,4 +149,5 @@ def plot_points(x, y, w):
     predictions = np.array([np.sign(np.dot(w,x_)) for x_ in grid_pts]).reshape((gridpoints,gridpoints))
     plt.contourf(gridx1, gridx2, predictions, cmap=plt.cm.Paired)
     plt.scatter(x[:, 0], x[:, 1], c=y, cmap=plt.cm.Paired)
+    plt.title(banner)
     plt.show()
