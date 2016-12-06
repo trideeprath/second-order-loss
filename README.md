@@ -45,4 +45,4 @@ For plotting you need close the plot to continue the next optimization
 
 
 * Train Data : data/train_csv.csv
-* Test Data : /test_csv.csv
+* Test Data : data/test_csv.csv
